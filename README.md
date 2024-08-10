@@ -1,2 +1,2 @@
 # RoseTTAFold-PPI
-Fast deep learning methods for large-scale protein-protein interaction screening 
+A fast deep learning method for large-scale protein-protein interaction screening 
