@@ -20,6 +20,21 @@ A fast deep learning method for large-scale protein-protein interaction screenin
    wget https://conglab.swmed.edu/humanPPI/RF2-PPI.pt
 
 ## Usage
-Running using singularity image:
+To run RoseTTAFold2-PPI using the Singularity image, use the following command:
+
 ```bash
-singularity exec --bind /scratch/bcgc/jzhang21/human_PPI/stage10_RF2t_AF:/home/jzhang21 --nv ./SE3nv-20230612.sif /bin/bash -c "cd /home/jzhang21/;python RF2t_MONO_DDI_PPI/predict_list_PPI.py A list_adc"
+singularity exec \
+  --bind /path/to/output_directory:/home/users \
+  --bind /path/to/rosettafold2-ppi/directory:/home/users \
+  --nv SE3nv-20230612.sif \
+  /bin/bash -c "cd /home/users; python RoseTTAFold2-PPI/src/predict_list_PPI.py input_file"
+```
+
+### Input File Format
+
+For the *input_file*, each line should contain three columns:
+
+1. **File path** of the multiple sequence alignment (MSA) input.
+2. **Length** of the first protein.
+3. **File path** for the output.
+
