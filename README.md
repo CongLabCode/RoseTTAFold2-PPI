@@ -17,7 +17,7 @@ A fast deep learning method for large-scale protein-protein interaction screenin
 
    ```bash
    cd RoseTTAFold2-PPI/src/models
-   wget https://conglab.swmed.edu/humanPPI/RF2-PPI.pt
+   wget --no-check-certificate https://conglab.swmed.edu/humanPPI/RF2-PPI.pt 
 
 ## Usage
 To run RoseTTAFold2-PPI using the Singularity image, use the following command:
