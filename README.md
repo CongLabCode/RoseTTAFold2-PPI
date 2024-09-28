@@ -26,7 +26,7 @@ To run RoseTTAFold2-PPI using the Singularity image, use the following command:
 singularity exec \
   --bind /path/to/output_directory:/work/users \
   --bind /path/to/rosettafold2-ppi/directory:/home/RoseTTAFold2-PPI \
-  --nv SE3nv-20230612.sif \
+  --nv SE3nv.sif \
   /bin/bash -c "cd /work/users; python /home/RoseTTAFold2-PPI/src/predict_list_PPI.py input_file"
 ```
 
