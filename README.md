@@ -5,7 +5,7 @@ A fast deep learning method for large-scale protein-protein interaction screenin
 
 1. Download the environment image from one of the following links:
 
-   - [Download from conglab.swmed.edu](https://conglab.swmed.edu/downloads/SE3nv.sif)
+   - [Download from conglab.swmed.edu](https://conglab.swmed.edu/humanPPI/SE3nv.sif)
    - [Download from prodata.swmed.edu](http://prodata.swmed.edu/humanPPI/bulk_download/SE3nv.sif)
 
 2. Clone the repository:
