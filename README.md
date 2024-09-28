@@ -24,7 +24,7 @@ To run RoseTTAFold2-PPI using the Singularity image, use the following command:
 
 ```bash
 singularity exec \
-  --bind /path/to/output_directory:/work/users \
+  --bind /path/to/input_and_output_directory:/work/users \
   --bind /path/to/rosettafold2-ppi/directory:/home/RoseTTAFold2-PPI \
   --nv SE3nv.sif \
   /bin/bash -c "cd /work/users; python /home/RoseTTAFold2-PPI/src/predict_list_PPI.py input_file"
@@ -32,9 +32,15 @@ singularity exec \
 
 ### Input File Format
 
-For the *input_file*, e.g., examples/input_file, each line should contain three columns:
+For the *input_file*, e.g., examples/input_file, each line should contain two columns:
 
-1. **File path** of the multiple sequence alignment (MSA) input.
+1. **File path** of the concatenated pairwise multiple sequence alignment (MSA) input.
 2. **Length** of the first protein.
-3. **File path** for the output.
+
+**Note**: When using Singularity, paths should be relative to the directories mounted inside the container. If you prefer to use absolute paths, ensure they reference the file paths **inside the container** after mounting the directories.
+
+### Output File
+The output file will be saved as `[input_filename].npz`, where `input_filename` is the name of your input file.
+
+
 
