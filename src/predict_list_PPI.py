@@ -73,76 +73,71 @@ else:
     device = 'cpu'
 model = RF2trackModule().to(device)
 
-chk_fn = current_DIR + '/models/RF-PPI_epoch140.pt'
+chk_fn = current_DIR + '/models/RF2-PPI.pt'
 map_location={'cuda:%d'%0: device}
 checkpoint = torch.load(chk_fn, map_location=map_location)
 model.load_state_dict(checkpoint['model_state_dict'], strict=True)
 
-part = sys.argv[1]
-name = sys.argv[2]
-fp = open('step3' + part + '/' + name + '.log', 'r')
-pair2L1 = {}
-pair2L2 = {}
-for line in fp:
-    words = line.split()
-    pair = words[0]
-    pair2L1[pair] = int(words[1])
-    pair2L2[pair] = int(words[2])
-fp.close()
 
+input_fn = sys.argv[1]
+results = {}
+fp = open(input_fn, 'r')
+lp = open(input_fn + '.log','w')
 
 model.eval()
-lp = open('step4' + part + '/' + name + '.log','w')
-results = {}
-with zipfile.ZipFile('step3' + part + '/' + name + '.zip', 'r') as zipf:
-    for pair in zipf.namelist():
-        L1 = pair2L1[pair]
-        L2 = pair2L2[pair]
-        with zipf.open(pair) as file:
-            msa = []
-            table = str.maketrans(dict.fromkeys(string.ascii_lowercase))
-            content = file.read()
-            lines = content.decode('utf-8').split('\n')
-            for line in lines[:10000]:
-                if line:
-                    if line[0] == '>':
-                        continue
-                    line = line.rstrip()
-                    msa_i = line.translate(table)
-                    msa.append(msa_i)
+table = str.maketrans(dict.fromkeys(string.ascii_lowercase))
+for line in fp:
+    words = line.split()
+    if len(words) != 2:
+        lp.write(f'{words[0]} error! Do not have three columns\n')
+        continue
+    pair = words[0]
+    msa = []
+    f_ent = open(pair)
+    for raw_line in f_ent:
+        if raw_line[0] == '>':
+            continue
+        raw_line = raw_line.rstrip()
+        msa.append(raw_line.translate(table))
+        if len(msa) >= 5000:
+            break
+    f_ent.close()
+    t_length = len(msa[0])
+    L1 = int(words[1])
+    L2 = t_length - int(words[1])
+    msa = np.array([list(s) for s in msa], dtype='|S1').view(np.uint8)
+    alphabet = np.array(list('ARNDCQEGHILKMFPSTWYVX-'), dtype='|S1').view(np.uint8)
+    for i in range(alphabet.shape[0]):
+        msa[msa == alphabet[i]] = i
+    msa[msa > 21] = 21
 
-            msa = np.array([list(s) for s in msa], dtype='|S1').view(np.uint8) # (Nseq, L)
-            alphabet = np.array(list('ARNDCQEGHILKMFPSTWYVX-'), dtype='|S1').view(np.uint8)
-            for i in range(alphabet.shape[0]):
-                msa[msa == alphabet[i]] = i
-            msa[msa > 21] = 21
+    startT = time.time()
+    network_input = prep_input(msa, L1, L2, device)
+    with torch.no_grad():
+        output_i = (None, None)
+        for i_cycle in range(N_cycle):
+            if i_cycle < N_cycle-1:
+                return_raw=True
+            else:
+                return_raw=False
+            input_i = _get_model_input(network_input, output_i, return_raw=return_raw, use_checkpoint=False)
+            output_i = model(**input_i)
+            if i_cycle < N_cycle - 1:
+                continue
 
-            startT = time.time()
-            network_input = prep_input(msa, L1, L2, device)
-
-            with torch.no_grad():
-                output_i = (None, None)
-                for i_cycle in range(N_cycle):
-                    if i_cycle < N_cycle-1:
-                        return_raw=True
-                    else:
-                        return_raw=False
-                    input_i = _get_model_input(network_input, output_i, return_raw=return_raw, use_checkpoint=False)
-                    output_i = model(**input_i)
-                    if i_cycle < N_cycle - 1:
-                        continue
-
-                    logit_dist = output_i[0][0]
-                    prob_dist = torch.nn.Softmax(dim=1)(logit_dist)
-                    p_bind = prob_dist[:,:20].sum(dim=1) # (B, L, L)
-                    p_bind = p_bind*(1.0-network_input['same_chain'].float()) # (B, L, L)
-                    p_bind = torch.nn.MaxPool2d(p_bind.shape[1:])(p_bind).view(-1)
-                    p_bind = torch.clamp(p_bind, min=0.0, max=1.0)
-                    _, N_seq, N_res = network_input['msa_orig'].shape
-                    prob = np.sum(prob_dist[0].permute(1,2,0).detach().cpu().numpy()[:L1,L1:,:20], axis=-1).astype(np.float16)
-                    results[pair] = prob
-                    endT = time.time()
-                    lp.write(pair + '\t' + str(round(p_bind.item(), 6)) + '\t' + str(N_seq) + '\t' + str(N_res) + '\t' + str(round(endT-startT, 6)) + '\n')
+            logit_dist = output_i[0][0]
+            prob_dist = torch.nn.Softmax(dim=1)(logit_dist)
+            p_bind = prob_dist[:,:20].sum(dim=1) # (B, L, L)
+            p_bind = p_bind*(1.0-network_input['same_chain'].float()) # (B, L, L)
+            p_bind = torch.nn.MaxPool2d(p_bind.shape[1:])(p_bind).view(-1)
+            p_bind = torch.clamp(p_bind, min=0.0, max=1.0)
+            _, N_seq, N_res = network_input['msa_orig'].shape
+            prob = np.sum(prob_dist[0].permute(1,2,0).detach().cpu().numpy()[:L1,L1:,:20], axis=-1).astype(np.float16)
+            results[pair] = prob
+            endT = time.time()
+            lp.write(pair + '\t' + str(round(p_bind.item(), 6)) + '\t' + str(N_seq) + '\t' + str(N_res) + '\t' + str(round(endT-startT, 6)) + '\n')
+np.savez_compressed(input_fn + '.npz', **results)
+lp.write('done\n')
 lp.close()
-np.savez_compressed('step4' + part + '/' + name + '.npz', **results)
-os.system('echo \'done\' > step4' + part + '/' + name + '.done')
+fp.close()
+print(input_fn, 'done')
