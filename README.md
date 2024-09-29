@@ -43,4 +43,14 @@ For the *input_file*, e.g., examples/input_file, each line should contain two co
 The output file will be saved as `[input_filename].npz`, where `input_filename` is the name of your input file.
 
 
+### Test
+```bash
+cd RoseTTAFold2-PPI
+exec_dir=$(pwd)
+singularity exec \
+    --bind $exec_dir:/home/RoseTTAFold2-PPI
+    --nv SE3nv.sif
+    /bin/bash -c "cd /home/RoseTTAFold2-PPI && python /home/RoseTTAFold2-PPI/src/predict_list_PPI.py examples/test.list"
+```
 
+The command will generate `test.list.log` and `test.list.npz` under `RoseTTAFold2-PPI/examples` which should be the same as files under `examples/expected_output`.
