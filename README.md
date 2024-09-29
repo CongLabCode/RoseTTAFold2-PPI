@@ -48,8 +48,8 @@ The output file will be saved as `[input_filename].npz`, where `input_filename` 
 cd RoseTTAFold2-PPI
 exec_dir=$(pwd)
 singularity exec \
-    --bind $exec_dir:/home/RoseTTAFold2-PPI
-    --nv SE3nv.sif
+    --bind $exec_dir:/home/RoseTTAFold2-PPI \
+    --nv SE3nv.sif \
     /bin/bash -c "cd /home/RoseTTAFold2-PPI && python /home/RoseTTAFold2-PPI/src/predict_list_PPI.py examples/test.list"
 ```
 
