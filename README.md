@@ -55,7 +55,14 @@ singularity exec \
 
 The command will generate `test.list.log` and `test.list.npz` under `RoseTTAFold2-PPI/examples` which should be the same as files under `examples/expected_output`.
 
-**Note**: The performance is affected by quality of multiple sequence alignment. Our benchmarks suggest that **trimming** low quality regions such as **poorly conserved intrinsically disordered regions** will improve the performance of RoseTTAFold2-PPI. 
+**Note**: The performance is affected by the quality of the multiple sequence alignment. Our benchmarks suggest that **trimming** low-quality regions, such as **poorly conserved intrinsically disordered regions**, enhances the accuracy of RoseTTAFold2-PPI.
+
+
+
+
+
+
+. 
 
 ## Reference
 
