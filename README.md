@@ -51,7 +51,7 @@ A fast deep learning method for large-scale protein-protein interaction screenin
    singularity exec \
      --bind /path/to/input_and_output_directory:/work/users \
      --bind /path/to/rosettafold2-ppi/directory:/home/RoseTTAFold2-PPI \
-     --nv SE3nv_20230612.sif \
+     --nv SE3nv-20230612.sif \
      /bin/bash -c "cd /work/users && python /home/RoseTTAFold2-PPI/src/predict_list_PPI.py -list_fn input_file -model_file model_file"
    ```
 
